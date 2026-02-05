@@ -1,84 +1,78 @@
 import React, { useState } from 'react';
-import { Role } from './types';
-import { StudentDashboard } from './components/StudentDashboard';
-import { PlacementDashboard } from './components/PlacementDashboard';
-import { FacultyDashboard } from './components/FacultyDashboard';
 import { LandingPage } from './components/LandingPage';
-import { Sparkles, Layout, GraduationCap, School, LogOut } from 'lucide-react';
+import { AuthPage } from './components/AuthPage';
+import { ProfileSetup } from './components/ProfileSetup';
+import { Dashboard } from './components/Dashboard';
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentRole, setCurrentRole] = useState<Role>(Role.STUDENT);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [hasProfile, setHasProfile] = useState(false);
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [profileData, setProfileData] = useState<any>(null);
 
   const handleLogin = () => {
+    setShowAuth(true);
+    setAuthMode('login');
+  };
+
+  const handleSignup = () => {
+    setShowAuth(true);
+    setAuthMode('signup');
+  };
+
+  const handleAuthSuccess = () => {
     setIsLoggedIn(true);
+    setShowAuth(false);
+    // Show profile setup for new users (signup) or users without profile
+    if (authMode === 'signup' || !hasProfile) {
+      setShowProfileSetup(true);
+    }
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
+  const handleBackToLanding = () => {
+    setShowAuth(false);
   };
 
-  if (!isLoggedIn) {
-    return <LandingPage onLogin={handleLogin} />;
+  const handleSwitchMode = (newMode: 'login' | 'signup') => {
+    setAuthMode(newMode);
+  };
+
+  const handleProfileComplete = (data: any) => {
+    setProfileData(data);
+    setHasProfile(true);
+    setShowProfileSetup(false);
+    setUserName(data.fullName);
+  };
+
+  // Show auth page if authentication in progress
+  if (!isLoggedIn && showAuth) {
+    return <AuthPage mode={authMode} onBack={handleBackToLanding} onSuccess={handleAuthSuccess} onSwitchMode={handleSwitchMode} />;
   }
 
+  // Show landing page if not logged in
+  if (!isLoggedIn) {
+    return <LandingPage onLogin={handleLogin} onSignup={handleSignup} />;
+  }
+
+  // Show profile setup if logged in but no profile
+  if (isLoggedIn && showProfileSetup) {
+    return <ProfileSetup initialName={userName} onComplete={handleProfileComplete} />;
+  }
+
+  // Main app - user is logged in and has completed profile
   return (
-    <div className="min-h-screen bg-[#FAFAFA] text-gray-800 font-sans selection:bg-yellow-200">
-      
-      {/* Navigation Header */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          
-          {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentRole(Role.STUDENT)}>
-            <div className="bg-black text-white p-2 rounded-xl">
-               <Sparkles size={20} fill="currentColor" />
-            </div>
-            <span className="text-2xl font-bold tracking-tight">SkillSpin</span>
-          </div>
-
-          {/* Role Switcher (Simulating Login) */}
-          <div className="flex p-1 bg-gray-100 rounded-full">
-            <button 
-                onClick={() => setCurrentRole(Role.STUDENT)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 ${currentRole === Role.STUDENT ? 'bg-white shadow-md text-black' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-                <Layout size={16} /> Student
-            </button>
-            <button 
-                onClick={() => setCurrentRole(Role.PLACEMENT_OFFICER)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 ${currentRole === Role.PLACEMENT_OFFICER ? 'bg-white shadow-md text-black' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-                <GraduationCap size={16} /> Placement
-            </button>
-            <button 
-                onClick={() => setCurrentRole(Role.FACULTY)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 ${currentRole === Role.FACULTY ? 'bg-white shadow-md text-black' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-                <School size={16} /> Faculty
-            </button>
-          </div>
-
-          {/* User Profile Stub */}
-          <div className="hidden md:flex items-center gap-3">
-             <div className="w-10 h-10 rounded-full bg-yellow-100 border-2 border-white shadow-sm overflow-hidden">
-                 <img src="https://picsum.photos/100/100" alt="Profile" className="w-full h-full object-cover" />
-             </div>
-             <button onClick={handleLogout} className="p-2 text-gray-400 hover:text-red-500 transition-colors" title="Log out">
-                <LogOut size={20} />
-             </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content Area */}
-      <main className="py-8 animate-in fade-in duration-500">
-        {currentRole === Role.STUDENT && <StudentDashboard />}
-        {currentRole === Role.PLACEMENT_OFFICER && <PlacementDashboard />}
-        {currentRole === Role.FACULTY && <FacultyDashboard />}
-      </main>
-
-    </div>
+    <Dashboard
+      profileData={profileData}
+      onEditProfile={() => setShowProfileSetup(true)}
+      onLogout={() => {
+        setIsLoggedIn(false);
+        setHasProfile(false);
+        setProfileData(null);
+      }}
+    />
   );
 };
 
