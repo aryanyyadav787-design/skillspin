@@ -1,8 +1,8 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
 # SkillSpin - Skill Enhancement & Role Targeting Platform
+
+<div align="center">
+  <h3>🎯 Track Skills • Set Goals • Get Personalized Recommendations</h3>
+</div>
 
 A modern web application for tracking your skills, setting career goals, and receiving personalized learning recommendations.
 
